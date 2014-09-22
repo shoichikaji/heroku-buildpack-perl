@@ -7,22 +7,22 @@ indent() {
 BUILD_DIR=$1
 CACHE_DIR=$2
 
-PATH="$BUILD_DIR/local/bin:$PATH"
+PERL_VERSION=5.20.1
+RELEASE_VERSION=0.5
+PERL_PACKAGE=https://github.com/shoichikaji/relocatable-perl/releases/download/$RELEASE_VERSION/perl-v$PERL_VERSION-x86_64-linux.tar.gz
 
-export PERL5LIB="$BUILD_DIR/local/lib/perl5"
-export PERL_CPANM_OPT="--quiet --notest -l $BUILD_DIR/local"
-
-rm -rf $BUILD_DIR/local
-if [ -d $CACHE_DIR/local ]; then
-  cp -a $CACHE_DIR/local $BUILD_DIR/local
+rm -rf $BUILD_DIR/vendor
+if [ -d $CACHE_DIR/vendor ]; then
+  cp -a $CACHE_DIR/vendor $BUILD_DIR/vendor
+else
+  echo "-----> Vendoring Perl"
+  mkdir -p $BUILD_DIR/vendor && curl -sL $PERL_PACKAGE | tar xzf - --strip-components 1 -C $BUILD_DIR/vendor
 fi
+
+export PATH="$BUILD_DIR/vendor/bin:$PATH"
+export PERL_CPANM_OPT="--quiet --notest"
 
 cd $BUILD_DIR
-
-if ! [ -e $BUILD_DIR/local/bin/cpanm ]; then
-  echo "-----> Bootstrapping cpanm"
-  curl -L --silent https://raw.github.com/miyagawa/cpanminus/master/cpanm | perl - App::cpanminus 2>&1 | indent
-fi
 
 echo "-----> Installing dependencies"
 cpanm --installdeps . 2>&1 | indent
@@ -30,8 +30,10 @@ cpanm --installdeps . 2>&1 | indent
 echo "-----> Installing Starman"
 cpanm Starman 2>&1 | indent
 
-if [ -d $BUILD_DIR/local ]; then
-  rm -rf $CACHE_DIR/local
+change-shebang -f $BUILD_DIR/vendor/bin/*
+
+if [ -d $BUILD_DIR/vendor ]; then
+  rm -rf $CACHE_DIR/vendor
   mkdir -p $CACHE_DIR
-  cp -a $BUILD_DIR/local $CACHE_DIR/local
+  cp -a $BUILD_DIR/vendor $CACHE_DIR/vendor
 fi
