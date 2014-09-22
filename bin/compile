@@ -30,7 +30,7 @@ cpanm --installdeps . 2>&1 | indent
 echo "-----> Installing Starman"
 cpanm Starman 2>&1 | indent
 
-change-shebang -f $BUILD_DIR/vendor/bin/*
+change-shebang -f $BUILD_DIR/vendor/bin/* 2>&1 | indent
 
 if [ -d $BUILD_DIR/vendor ]; then
   rm -rf $CACHE_DIR/vendor
