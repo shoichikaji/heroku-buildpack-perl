@@ -4,7 +4,7 @@ cat << EOF
 ---
 addons:
 config_vars:
-  PATH: /app/vendor/bin:/usr/local/bin:/usr/bin:/bin
+  PATH: /app/vendor/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
   PERL5LIB: /app/lib
 default_process_types:
   web: starman --preload-app --port \$PORT
