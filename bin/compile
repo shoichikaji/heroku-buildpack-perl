@@ -1,7 +1,13 @@
-#!/bin/sh
+#!/bin/bash
 
 indent() {
   sed -u 's/^/       /'
+}
+cat_build_log() {
+  local build_log=$HOME/.cpanm/build.log
+  echo # empty line
+  echo ----- dumping $build_log ----- | indent
+  cat $build_log | indent
 }
 
 BUILD_DIR=$1
@@ -13,6 +19,7 @@ PERL_PACKAGE=https://github.com/shoichikaji/relocatable-perl/releases/download/$
 
 rm -rf $BUILD_DIR/vendor
 if [ -d $CACHE_DIR/vendor ]; then
+  echo "-----> Vendoring Perl (using cache)"
   cp -a $CACHE_DIR/vendor $BUILD_DIR/vendor
 else
   echo "-----> Vendoring Perl"
@@ -22,14 +29,19 @@ fi
 export PATH="$BUILD_DIR/vendor/bin:$PATH"
 export PERL_CPANM_OPT="--quiet --notest"
 
+echo Using perl `perl -e 'print $^V'` | indent
+
 cd $BUILD_DIR
 
 echo "-----> Installing dependencies"
 cpanm --installdeps . 2>&1 | indent
+if [ ${PIPESTATUS[0]} -ne 0 ]; then cat_build_log; exit 1; fi
 
 echo "-----> Installing Starman"
 cpanm Starman 2>&1 | indent
+if [ ${PIPESTATUS[0]} -ne 0 ]; then cat_build_log; exit 1; fi
 
+echo "-----> Changing shebang lines"
 change-shebang -f $BUILD_DIR/vendor/bin/* 2>&1 | indent
 
 if [ -d $BUILD_DIR/vendor ]; then
