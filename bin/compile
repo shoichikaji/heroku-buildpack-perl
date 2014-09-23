@@ -18,9 +18,9 @@ RELEASE_VERSION=0.5
 PERL_PACKAGE=https://github.com/shoichikaji/relocatable-perl/releases/download/$RELEASE_VERSION/perl-v$PERL_VERSION-x86_64-linux.tar.gz
 
 rm -rf $BUILD_DIR/vendor
-if [ -d $CACHE_DIR/vendor ]; then
+if [ -d $CACHE_DIR/vendor-$RELEASE_VERSION-$PERL_VERSION ]; then
   echo "-----> Vendoring Perl (using cache)"
-  cp -a $CACHE_DIR/vendor $BUILD_DIR/vendor
+  cp -a $CACHE_DIR/vendor-$RELEASE_VERSION-$PERL_VERSION $BUILD_DIR/vendor
 else
   echo "-----> Vendoring Perl"
   mkdir -p $BUILD_DIR/vendor && curl -sL $PERL_PACKAGE | tar xzf - --strip-components 1 -C $BUILD_DIR/vendor
@@ -45,7 +45,7 @@ echo "-----> Changing shebang lines"
 change-shebang -f $BUILD_DIR/vendor/bin/* 2>&1 | indent
 
 if [ -d $BUILD_DIR/vendor ]; then
-  rm -rf $CACHE_DIR/vendor
+  rm -rf $CACHE_DIR/vendor-$RELEASE_VERSION-$PERL_VERSION
   mkdir -p $CACHE_DIR
-  cp -a $BUILD_DIR/vendor $CACHE_DIR/vendor
+  cp -a $BUILD_DIR/vendor $CACHE_DIR/vendor-$RELEASE_VERSION-$PERL_VERSION
 fi
