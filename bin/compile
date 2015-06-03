@@ -13,39 +13,37 @@ cat_build_log() {
 BUILD_DIR=$1
 CACHE_DIR=$2
 
-PERL_VERSION=5.20.1
-RELEASE_VERSION=0.5
-PERL_PACKAGE=https://github.com/shoichikaji/relocatable-perl/releases/download/$RELEASE_VERSION/perl-v$PERL_VERSION-x86_64-linux.tar.gz
+RELEASE_VERSION=5.22.0.0
+PERL_PACKAGE=https://github.com/shoichikaji/relocatable-perl/releases/download/$RELEASE_VERSION/perl-x86_64-linux.tar.gz
 
 rm -rf $BUILD_DIR/vendor
-if [ -d $CACHE_DIR/vendor-$RELEASE_VERSION-$PERL_VERSION ]; then
+if [ -d $CACHE_DIR/vendor-$RELEASE_VERSION ]; then
   echo "-----> Vendoring Perl (using cache)"
-  cp -a $CACHE_DIR/vendor-$RELEASE_VERSION-$PERL_VERSION $BUILD_DIR/vendor
+  cp -a $CACHE_DIR/vendor-$RELEASE_VERSION $BUILD_DIR/vendor
 else
   echo "-----> Vendoring Perl"
-  mkdir -p $BUILD_DIR/vendor && curl -sL $PERL_PACKAGE | tar xzf - --strip-components 1 -C $BUILD_DIR/vendor
+  mkdir -p $BUILD_DIR/vendor && curl -sSL $PERL_PACKAGE | tar xzf - --strip-components 1 -C $BUILD_DIR/vendor
 fi
 
 export PATH="$BUILD_DIR/vendor/bin:$PATH"
-export PERL_CPANM_OPT="--quiet --notest"
 
-echo Using perl `perl -e 'print $^V'` | indent
+echo "Using perl `perl -e 'print $^V'`" | indent
 
 cd $BUILD_DIR
 
 echo "-----> Installing dependencies"
-cpanm --installdeps . 2>&1 | indent
+cpanm -nq --installdeps . 2>&1 | indent
 if [ ${PIPESTATUS[0]} -ne 0 ]; then cat_build_log; exit 1; fi
 
 echo "-----> Installing Starman"
-cpanm Starman 2>&1 | indent
+cpanm -nq Starman 2>&1 | indent
 if [ ${PIPESTATUS[0]} -ne 0 ]; then cat_build_log; exit 1; fi
 
 echo "-----> Changing shebang lines"
 change-shebang -f $BUILD_DIR/vendor/bin/* 2>&1 | indent
 
 if [ -d $BUILD_DIR/vendor ]; then
-  rm -rf $CACHE_DIR/vendor-$RELEASE_VERSION-$PERL_VERSION
+  rm -rf $CACHE_DIR/vendor-$RELEASE_VERSION
   mkdir -p $CACHE_DIR
-  cp -a $BUILD_DIR/vendor $CACHE_DIR/vendor-$RELEASE_VERSION-$PERL_VERSION
+  cp -a $BUILD_DIR/vendor $CACHE_DIR/vendor-$RELEASE_VERSION
 fi
