@@ -35,10 +35,6 @@ echo "-----> Installing dependencies"
 cpanm -nq --installdeps . 2>&1 | indent
 if [ ${PIPESTATUS[0]} -ne 0 ]; then cat_build_log; exit 1; fi
 
-echo "-----> Installing Starman"
-cpanm -nq Starman 2>&1 | indent
-if [ ${PIPESTATUS[0]} -ne 0 ]; then cat_build_log; exit 1; fi
-
 echo "-----> Changing shebang lines"
 change-shebang -f $BUILD_DIR/vendor/bin/* 2>&1 | indent
 
