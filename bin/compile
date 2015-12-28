@@ -13,8 +13,9 @@ cat_build_log() {
 BUILD_DIR=$1
 CACHE_DIR=$2
 
-RELEASE_VERSION=5.22.0.0
-PERL_PACKAGE=https://github.com/shoichikaji/relocatable-perl/releases/download/$RELEASE_VERSION/perl-x86_64-linux.tar.gz
+INSTALL_URL=https://git.io/perl-install
+
+RELEASE_VERSION=`curl -sSkL $INSTALL_URL | bash -s - --print-version`
 
 rm -rf $BUILD_DIR/vendor
 if [ -d $CACHE_DIR/vendor-$RELEASE_VERSION ]; then
@@ -22,7 +23,8 @@ if [ -d $CACHE_DIR/vendor-$RELEASE_VERSION ]; then
   cp -a $CACHE_DIR/vendor-$RELEASE_VERSION $BUILD_DIR/vendor
 else
   echo "-----> Vendoring Perl"
-  mkdir -p $BUILD_DIR/vendor && curl -sSL $PERL_PACKAGE | tar xzf - --strip-components 1 -C $BUILD_DIR/vendor
+  mkdir -p $BUILD_DIR/vendor
+  curl -sSkL $INSTALL_URL | bash -s $BUILD_DIR/vendor
 fi
 
 export PATH="$BUILD_DIR/vendor/bin:$PATH"
